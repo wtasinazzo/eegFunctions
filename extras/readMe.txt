@@ -1,0 +1,1 @@
+Utile, come osservabile in "esempio di utilizzo", fare prima un resampling dei dati in quanto queste funzioni sono pesanti computazionalmente. Riducendo il numero di campioni si velocizza. I 512 Hz mi è stato detto da Stefano vanno benissimo, non si perdono informazioni utili, si potrebbe addirittura farlo all'inizio del preprocessing

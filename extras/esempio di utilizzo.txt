@@ -1,0 +1,52 @@
+%% Bayesian average
+disp('   Resampling ...')
+
+if mod(selfEEG.srate,settings.preprocessing.resampling.newFreq)~=0
+    error('La nuova frequenza non è un sottomultiplo della frequenza originale!')
+end
+
+% Resampling dei dati
+rapporto = selfEEG.srate / settings.preprocessing.resampling.newFreq;
+selfEEG.times = selfEEG.times(1:rapporto:end);
+selfEEG.data = selfEEG.data(:,1:rapporto:end,:);
+selfEEG.Ts = selfEEG.times(2)-selfEEG.times(1);
+
+extEEG.times = extEEG.times(1:rapporto:end);
+extEEG.data = extEEG.data(:,1:rapporto:end,:);
+extEEG.Ts = extEEG.times(2)-extEEG.times(1);
+
+% Aggiorno le variabili della struttura EEG 
+selfEEG.srate = settings.preprocessing.resampling.newFreq;
+extEEG.srate = settings.preprocessing.resampling.newFreq;
+
+
+disp('BAYES AVERAGING ...')
+
+canali_interessanti=[14,20];
+% Aggiungo nella struttura EEG un vettore contenente la media delle epoche
+selfEEG = bayesian_average_EEG(selfEEG,settings,canali_interessanti);
+extEEG = bayesian_average_EEG(extEEG,settings,canali_interessanti);
+
+cont=0;
+figure()
+% for i=1:selfEEG.nbchan
+for i=canali_interessanti
+    cont=cont+1;
+    subplot(1,2,cont)
+    plot(selfEEG.bayes.time,selfEEG.bayes.stima(i,:),'b',extEEG.bayes.time,extEEG.bayes.stima(i,:),'r',...
+        selfEEG.bayes.time,selfEEG.bayes.stima(i,:)+selfEEG.bayes.std(i,:),':b',...
+        extEEG.bayes.time,extEEG.bayes.stima(i,:)+extEEG.bayes.std(i,:),':r',...
+        selfEEG.bayes.time,selfEEG.bayes.stima(i,:)-selfEEG.bayes.std(i,:),':b',...
+        extEEG.bayes.time,extEEG.bayes.stima(i,:)-extEEG.bayes.std(i,:),':r',...
+        [0,0],[-100,100],'LineWidth',1)
+    legend('Self ± SD','Ext ± SD')
+    sgtitle('Bayes Averaging ')
+    % plot(selfEEG.bayes.time,selfEEG.bayes.stima(i,:),'b',extEEG.bayes.time,extEEG.bayes.stima(i,:),'r',...
+    %     [0,0],[-100,100],'LineWidth',1)
+    % legend('Self','Ext')
+    title('Canale: '+ selfEEG.channels(i))
+    ylabel('\muV')        
+    xlabel('Time (ms)')
+    xlim([-20 200])
+    ylim([-10 12])
+end
